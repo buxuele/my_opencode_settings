@@ -1,0 +1,7 @@
+#!/bin/zsh
+# opencode shell 工具专用入口。
+# 只把无头拦截目录放到 PATH 最前，其余完全交给系统 zsh。
+# 用户自己的终端不经过这里，行为不受影响。
+
+export PATH="$HOME/.config/opencode/bin:$PATH"
+exec /bin/zsh "$@"

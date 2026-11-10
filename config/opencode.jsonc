@@ -1,0 +1,125 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "username": "fanchuang",
+  "default_agent": "general",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "shell": "/Users/fanchuang/.config/opencode/bin/zsh-wrapper",
+  "share": "disabled",
+  "autoupdate": "notify",
+  "snapshot": false,
+  "formatter": false,
+  "skills": {
+    "paths": [
+      "/Users/fanchuang/.config/opencode/skills"
+    ]
+  },
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "bash": "allow",
+    "task": "allow",
+    "skill": "allow",
+    "lsp": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "external_directory": {
+      "*": "ask",
+      "~/code/**": "allow",
+      "~/Documents/**": "allow",
+      "~/.config/opencode/**": "allow",
+      "~/.local/share/opencode/**": "allow"
+    }
+  },
+  "agent": {
+    "general": {
+      "permission": "allow"
+    }
+  },
+  "plugins": [
+    {
+      "package": "./plugins/remember-model",
+      "options": {
+        "enabled": true,
+        "pollMs": 1000,
+        "debug": true
+      }
+    },
+    {
+      "package": "./plugins/auto-continue",
+      "options": {
+        "enabled": false,
+        "maxContinuesPerTurn": 20,
+        "debug": true
+      }
+    },
+    {
+      "package": "./plugins/session-title",
+      "options": {
+        "separator": " ",
+        "prefixFolder": false,
+        "maxSummary": 28,
+        "debug": true
+      }
+    },
+    "opencode-mem@latest"
+  ],
+  "providers": {
+    "opencode": {
+      "settings": {
+        "headerTimeout": 180000,
+        "chunkTimeout": 180000
+      }
+    }
+  },
+  // 2026-10-10 弃用 openrouter：key 总额度频繁被打满导致会话中断，全库 81 次 drain 失败里 49 次源于此。
+  // policy deny 让它从模型目录里彻底消失，仓库级配置无法覆盖回来。
+  "experimental": {
+    "policies": [
+      { "action": "provider.use", "resource": "openrouter", "effect": "deny" },
+      // 2026-10-20 弃用 github-copilot：GITHUB_TOKEN 是 PAT，V2 的 Copilot 端点明确拒绝 PAT，且模型质量不满意。
+      // 这里只封禁 provider，GITHUB_TOKEN 仍保留给推送仓库与统计脚本使用。
+      { "action": "provider.use", "resource": "github-copilot", "effect": "deny" }
+    ]
+  },
+  // chrome-devtools 于 2026-10-09 重新开启。降内存措施见每项后的注释，全部来自本地 1.9.0 的 --help 实测。
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "/Users/fanchuang/.local/bin/chrome-devtools-mcp",
+        "--headless",
+        "--isolated",
+        // 2026-10-27 必须用独立的 Chrome for Testing：系统 Chrome 的二进制是 /Applications/Google Chrome.app，
+        // 无头实例会以 Foreground 身份注册到 com.google.Chrome，抢走 Dock 点击与 open -a 的激活请求，
+        // 表现为“Chrome 打不开”。CfT 的 bundle id 是 com.google.chrome.for.testing，实测可与之共存。
+        "--executablePath", "/Users/fanchuang/.local/share/chrome-for-testing/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "--viewport", "1280x720",
+        "--no-category-performance",
+        "--no-category-network",
+        "--no-performance-crux",
+        "--no-source-maps",
+        "--no-usage-statistics",
+        "--screenshotFormat", "jpeg",
+        "--screenshotQuality", "60",
+        "--screenshotMaxWidth", "1280"
+      ],
+      "enabled": true,
+      "timeout": 60000
+    },
+    // context-mode 于 2026-10-15 移除：服务端反复重生该 MCP 子进程，且今天 15:38 出现进程异常退出。
+    // mac-mcp 于 2026-10-11 接入。本机工具集合，含网页抓取、网络诊断、免费模型目录、进程审计。
+    "mac-mcp": {
+      "type": "local",
+      "command": [
+        "/Users/fanchuang/code/py_apps/mac_mcp/venv/bin/python",
+        "/Users/fanchuang/code/py_apps/mac_mcp/server.py"
+      ],
+      "enabled": true,
+      "timeout": 60000
+    }
+  }
+}

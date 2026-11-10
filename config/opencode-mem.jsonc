@@ -1,0 +1,15 @@
+{
+  "opencodeProvider": "opencode-go",
+  "opencodeModel": "deepseek-v4.1-flash",
+  "autoCaptureEnabled": false,
+  "autoUpdate": false,
+  "autoCaptureLanguage": "zh",
+  "userProfileAnalysisInterval": 10,
+  "storagePath": "~/.opencode-mem/data",
+  "embeddingModel": "Xenova/nomic-embed-text-v1",
+  "defaultScope": "project",
+  "webServerHost": "127.0.0.1",
+  "showAutoCaptureToasts": false,
+  "showUserProfileToasts": false,
+  "showErrorToasts": true
+}

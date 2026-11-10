@@ -1,0 +1,18 @@
+# 插件依赖，按需安装
+node_modules/
+
+# macOS 垃圾文件
+.DS_Store
+
+# opencode 服务端随机密码，绝不入库
+service.json
+
+# 历史备份与归档
+*.bak
+*.bak.*
+archive/
+context-mode/
+
+# 本地临时产物
+*.log
+.DS_Store?

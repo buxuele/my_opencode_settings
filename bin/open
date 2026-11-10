@@ -1,0 +1,83 @@
+#!/bin/zsh
+# opencode 专用 open 拦截器。
+# 作用：凡是要用浏览器打开 URL 的请求，一律转成本机 Chrome 无头截图，
+# 不唤起默认浏览器、不弹窗、不抢焦点。非 URL 参数原样透传给系统 open。
+# 生效范围：仅 opencode 的 shell 工具，因为 PATH 前置只在 zsh-wrapper 里设置。
+
+# 2026-10-27 改用独立的 Chrome for Testing：系统 Chrome 的无头实例会以 Foreground 身份
+# 注册到 com.google.Chrome，抢走 Dock 与 open -a 的激活请求，导致用户自己的 Chrome 打不开。
+CHROME_FOR_TESTING="/Users/fanchuang/.local/share/chrome-for-testing/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+CHROME_SYSTEM="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+if [[ -x "$CHROME_FOR_TESTING" ]]; then
+  CHROME="$CHROME_FOR_TESTING"
+else
+  CHROME="$CHROME_SYSTEM"
+fi
+OUT_DIR="$HOME/Library/Caches/opencode/headless-previews"
+REAL_OPEN="/usr/bin/open"
+
+urls=()
+passthrough=()
+for arg in "$@"; do
+  case "$arg" in
+    http://*|https://*|file://*)
+      urls+=("$arg")
+      ;;
+    *)
+      passthrough+=("$arg")
+      ;;
+  esac
+done
+
+if (( ${#urls[@]} == 0 )); then
+  exec "$REAL_OPEN" "$@"
+fi
+
+if [[ ! -x "$CHROME" ]]; then
+  print -u2 "未找到 Chrome，无法无头打开：$CHROME"
+  exit 1
+fi
+
+mkdir -p "$OUT_DIR"
+# 只保留最近 7 天的截图，避免缓存无限增长。
+find "$OUT_DIR" -name '*.png' -mtime +7 -delete 2>/dev/null
+
+for url in "${urls[@]}"; do
+  host=${url#*://}
+  host=${host%%/*}
+  host=${host%%:*}
+  [[ -z "$host" ]] && host="page"
+  safe_host=${host//[^A-Za-z0-9._-]/_}
+  stamp=$(date +%Y%m%d_%H%M%S)
+  shot="$OUT_DIR/${stamp}_${safe_host}.png"
+  profile=$(mktemp -d "${TMPDIR:-/tmp}/opencode-headless-XXXXXX")
+
+  "$CHROME" \
+    --headless=new \
+    --disable-gpu \
+    --hide-scrollbars \
+    --no-first-run \
+    --no-default-browser-check \
+    --mute-audio \
+    --user-data-dir="$profile" \
+    --window-size=1280,900 \
+    --screenshot="$shot" \
+    "$url" >/dev/null 2>&1
+
+  code=$?
+  rm -rf "$profile"
+
+  if (( code == 0 )) && [[ -f "$shot" ]]; then
+    print "已用无头 Chrome 打开：$url"
+    print "截图：$shot"
+  else
+    if (( code == 0 )); then
+      print -u2 "无头 Chrome 未生成截图：$url，目标页面可能无法访问"
+    else
+      print -u2 "无头 Chrome 截图失败：$url，退出码 $code"
+    fi
+    exit 1
+  fi
+done
+
+exit 0
