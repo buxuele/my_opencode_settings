@@ -1,6 +1,6 @@
 # opencode 配置库
 
-个人使用的 opencode 配置与使用习惯。
+个人 opencode 配置与使用习惯。
 
 ```
 git clone https://github.com/buxuele/my_opencode_settings.git
