@@ -1,4 +1,4 @@
-# opencode 兵器库
+# opencode 配置库
 
 ## 简介
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# opencode 兵器库安装脚本。
+# opencode 配置库安装脚本。
 # 把仓库里的配置、指令、技能、插件、启动脚本安装到 ~/.config/opencode。
 # 安装前自动备份现有配置，安装时把作者机器的家目录路径替换成当前机器的家目录。
 
@@ -18,7 +18,7 @@ say "仓库位置：${REPO_DIR}"
 say "安装目标：${DEST}"
 
 if [[ ! -f "${REPO_DIR}/config/opencode.jsonc" ]]; then
-  say "缺少 config/opencode.jsonc，当前目录不是兵器库仓库。"
+  say "缺少 config/opencode.jsonc，当前目录不是配置库仓库。"
   exit 1
 fi
 
