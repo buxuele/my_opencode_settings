@@ -51,6 +51,7 @@ install_file "${REPO_DIR}/config/opencode-mem.jsonc" "opencode-mem.jsonc"
 install_file "${REPO_DIR}/config/cli.json" "cli.json"
 install_file "${REPO_DIR}/config/AGENTS.md" "AGENTS.md"
 install_file "${REPO_DIR}/preferences/用户偏好.md" "用户偏好.md"
+install_file "${REPO_DIR}/preferences/输出闸门.md" "输出闸门.md"
 
 for f in "${REPO_DIR}"/commands/*.md; do
   install_file "${f}" "commands/$(basename "${f}")"

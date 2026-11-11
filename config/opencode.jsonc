@@ -65,6 +65,12 @@
         "debug": true
       }
     },
+    {
+      "package": "./plugins/style-gate",
+      "options": {
+        "enabled": true
+      }
+    },
     "opencode-mem@latest"
   ],
   "providers": {
