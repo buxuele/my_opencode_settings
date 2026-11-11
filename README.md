@@ -23,8 +23,8 @@
 1. 克隆仓库到本机任意目录。
 
 ```
-git clone https://github.com/buxuele/opencode_arsenal.git
-cd opencode_arsenal
+git clone https://github.com/buxuele/my_opencode_settings.git
+cd my_opencode_settings
 ```
 
 2. 执行安装脚本。脚本会先备份现有的 ~/.config/opencode，再把文件逐个安装过去，并把作者家目录路径替换成当前机器的家目录。
@@ -48,7 +48,7 @@ bash install.sh
 ## 目录结构
 
 ```
-opencode_arsenal/
+my_opencode_settings/
 ├── README.md
 ├── 开发记录.md
 ├── install.sh
