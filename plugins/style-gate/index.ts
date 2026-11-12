@@ -19,6 +19,17 @@ type Options = {
   reflectScript?: string
 }
 
+type TopIssue = {
+  name?: string
+  recent?: number
+  previous?: number
+  trend?: string
+  rule?: string
+  status?: string
+}
+
+type GateGlobal = typeof globalThis & { __styleGateTimer?: ReturnType<typeof setInterval> }
+
 const readText = (path: string) => {
   try {
     return readFileSync(path, "utf8")
@@ -38,11 +49,15 @@ const topIssue = () => {
   const raw = readText(REFLECT_FILE)
   if (raw.length === 0) return ""
   try {
-    const data = JSON.parse(raw) as { top_issue?: { name?: string; example?: string } }
-    const name = data.top_issue?.name ?? ""
-    if (name.length === 0) return ""
-    const example = (data.top_issue?.example ?? "").replace(/[。！？!?]+$/, "").slice(0, 50)
-    return example.length > 0 ? `${name}，最近一次原话：${example}` : name
+    const data = JSON.parse(raw) as { top_issue?: TopIssue }
+    const issue = data.top_issue
+    if (!issue?.name) return ""
+    const parts = [issue.name]
+    if (typeof issue.recent === "number") parts.push(`最近 ${issue.recent} 次`)
+    if (issue.trend) parts.push(issue.trend)
+    if (issue.status) parts.push(issue.status)
+    const head = parts.join("，")
+    return issue.rule ? `${head}。改法：${issue.rule}` : head
   } catch {
     return ""
   }
@@ -67,8 +82,13 @@ export default Plugin.define({
       if (!stale()) return
       execFile("python3", [opt.reflectScript as string], { timeout: 60_000 }, () => {})
     }
-    refresh()
-    const timer = setInterval(refresh, CHECK_MS)
+    const gateGlobal = globalThis as GateGlobal
+    let owner = false
+    if (!gateGlobal.__styleGateTimer) {
+      refresh()
+      gateGlobal.__styleGateTimer = setInterval(refresh, CHECK_MS)
+      owner = true
+    }
 
     const registration = await ctx.session.hook("context", (event) => {
       if (event.system.some((part) => part.type === "text" && part.text.includes("<输出闸门>"))) return
@@ -88,7 +108,10 @@ export default Plugin.define({
     })
 
     return async () => {
-      clearInterval(timer)
+      if (owner) {
+        clearInterval(gateGlobal.__styleGateTimer)
+        delete gateGlobal.__styleGateTimer
+      }
       await registration.dispose()
     }
   },
